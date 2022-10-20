@@ -1,6 +1,6 @@
 from openjdk
 
-COPY ./src/main/java/*.java /
+COPY ./src/Main/java/*.java /
 
 RUN javac /Calculator.java
 
