@@ -1,7 +1,7 @@
 from openjdk
 
-COPY ./src/Main/java/*.java /
+COPY ./src/main/java/*.java /
 
-RUN javac /Calculator.java
+RUN javac /Main.java /Calculator.java
 
-ENTRYPOINT ["java"]
+ENTRYPOINT ["java", "Main"]
