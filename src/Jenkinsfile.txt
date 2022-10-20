@@ -1,48 +1,56 @@
 pipeline {
-    agent any
+  environment {
+    registry = "paytonjhall/jenkins-calculator"
+    registryCredential = 'dockerhub'
+    dockerImage = ''
+  }
 
-    environment {
-            registry = "paytonjhall/jenkins-calculator"
-            registryCredential = 'dockerhub'
-            dockerImage=''
-    }
-    tools {
-        maven 'apache maven 3.8.6'
-        jdk 'JDK 8'
-    }
-    stages {
-        stage('Clean') {
-            steps {
-                sh 'mvn clean'
-            }
-        }
-        stage('Build') {
-            steps {
-                sh 'mvn compile'
-            }
-        }
-        stage('Short Tests') {
-            steps {
-                sh 'mvn -Dtest=CalculatorTest test'
-            }
-        }
-        stage('Long Tests') {
-            steps {
-                sh 'mvn -Dtest=CalculatorTestThorough test'
-            }
-            post {
-                success {
-                    junit 'target/surefire-reports/**/*.xml'
-                }
-            }
-        }
-         stage ('Package') {
-                  steps {
-                      sh 'mvn package'
-                      archiveArtifacts artifacts: 'src/**/*.java'
-                      archiveArtifacts artifacts: 'target/*.jar'
-                  }
+  agent any
+
+  tools {
+     maven 'apache maven 3.6.3'
+     jdk 'JDK 8'
+  }
+
+  stages {
+
+     stage ('Clean') {
+          steps {
+              sh 'mvn clean'
+          }
+      }
+
+      stage ('Build') {
+          steps {
+              sh 'mvn compile'
+          }
+      }
+
+      stage ('Short Tests') {
+          steps {
+              sh 'mvn -Dtest=CalculatorTest test'
+          }
+      }
+
+      stage ('Long Tests') {
+          steps {
+              sh 'mvn -Dtest=CalculatorTestThorough test'
+          }
+          post {
+              success {
+                  junit 'target/surefire-reports/**/*.xml'
               }
+          }
+      }
+
+      stage ('Package') {
+          steps {
+              sh 'mvn package'
+              archiveArtifacts artifacts: 'src/**/*.java'
+              archiveArtifacts artifacts: 'target/*.jar'
+          }
+      }
+
       stage('Building image') {
         steps{
           script {
@@ -50,6 +58,7 @@ pipeline {
           }
         }
       }
+
       stage('Deploy Image') {
         steps{
           script {
@@ -60,27 +69,21 @@ pipeline {
         }
       }
 
-      stage('Deploy Image') {
-        steps{
-          script {
-            docker.withRegistry( '', registryCredential ) {
-              dockerImage.push()
-            }
+      stage('Remove Unused docker image') {
+          steps{
+            sh "docker rmi $registry:$BUILD_NUMBER"
           }
         }
+      }
+
+      post {
+          failure {
+              mail to: 'paytonjhall@gmail.com',
+              subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+              body: "Something is wrong with ${env.BUILD_URL}"
+          }
       }
 }
-        post {
 
-                failure{
 
-                         mail to: 'paytonjhall@gmail.com',
 
-                  subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
-
-                  body: "Something is wrong with ${env.BUILD_URL}"
-
-                }
-
-        }
-    }
