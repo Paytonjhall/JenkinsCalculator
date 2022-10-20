@@ -27,6 +27,7 @@ class Calculator {
     Returns the n'th number in the fibonacci sequence
     https://en.wikipedia.org/wiki/Fibonacci_number
     Example below
+    Testing new input to pipeline here
     n = x
     0 = 0
     1 = 1
